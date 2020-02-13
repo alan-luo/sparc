@@ -1,0 +1,139 @@
+body {
+	font-family: 'Crimson Text', serif;
+	font-size:16pt;
+}
+#printButton {
+	border-radius:5px !important;
+	padding:2px 7px !important;
+	margin:10px !important;
+	position:fixed !important;
+	top:0 !important;
+	right:0 !important;
+	font-size: 14pt !important;
+	border:2px solid black !important;
+	transition: all 0.17s !important;
+	line-height:1.5em !important;
+	background:white;
+	z-index:1000 !important;
+}
+#printButton:hover {
+	cursor:pointer;
+	background:black;
+	color:white;
+}
+.container {
+	width: 60%;
+	margin: 4em auto;
+	/*border:1px solid black;*/
+
+	line-height:1.5em;
+}
+div.container.print {
+	width:90%;
+	font-size:12pt;
+	line-height:1.2em;
+}
+div.container.print .nav {
+	display:none !important;
+}
+canvas {
+	border:1px solid black;
+}
+.wrapper {
+	text-align:center;
+	display:flex;
+	flex-direction: row;
+	justify-content: space-around;
+}
+.nav {
+	height:100%;
+	position:fixed;
+	left:0;
+	top:0;
+	font-size:14pt;
+	margin:0;
+}
+.nav a {
+	text-decoration: none;
+	color:black;
+}
+.nav a:hover {
+	text-decoration: underline;
+}
+.nav ul {
+	list-style:none;
+	line-height:1.5em;
+	margin-left:0;
+}
+.nav li.subsection {
+	margin-left:1em;
+}
+h1.anchor {
+	position:relative;
+}
+h1.anchor::after {
+	content:'#  'attr(data-content);
+	position:absolute;
+	right:0;
+	top:-0.2em;
+	font-weight:400;
+	color:#ddd;
+}
+
+h2.anchor {
+	position:relative;
+}
+h2.anchor::after {
+	content:'#  'attr(data-content);
+	position:absolute;
+	right:0;
+	top:-0.2em;
+	font-weight:400;
+	color:#ddd;
+}
+
+/* d3 stuff */
+
+.line {
+    fill: none;
+    stroke-width: 3;
+}
+
+.orange {
+	stroke: #ffab00;
+}
+.red {
+	stroke: #eb4034;
+}
+.blue {
+	stroke: #3489eb;
+}
+.purple {
+	stroke: #cb32ed;
+}
+.black {
+	stroke: #000000;
+}
+  
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+/* Style the dots by assigning a fill and stroke */
+/*
+.dot {
+    fill: #ffab00;
+    stroke: #fff;
+}
+  
+.focus circle {
+  fill: none;
+  stroke: steelblue;
+}
+*/
+
+#svg1, #svg2 {
+	width:600px;
+	height:400px;
+}

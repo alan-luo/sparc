@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<link href="https://fonts.googleapis.com/css?family=Crimson+Text:400,400i,700&display=swap" rel="stylesheet">
+	
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/6.6.0/math.min.js"></script>
+	
+
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+	<link rel="stylesheet" href="./css/style.css">
+	<script>
+		window.MathJax = {
+		  tex: {
+		    inlineMath: [['$', '$'], ['\\(', '\\)']]
+		  }
+		};
+	</script>
+</head>
+<body>
+	<div class="container">
+		<div id="printButton" onclick="toggleView();">Toggle Viewing Mode</div>
+		<div class="nav">
+			<ul id="nav"></ul>
+		</div>
+
+
+		<h1>SPARC 2020 Application</h1>
+		<h3>Technical Question 1B: <span style="font-weight:400">The Temperature in Hayward</span></h3>
+		<p><b>Written by: </b>Alan Luo</p>
+		<p><b>Note for SPARC readers: </b>I'm well aware that the recommended limit is 2-3 pages; however, I got too invested this problem and crossed way over. Everything in section 1 is sufficient to answer the question: for the purposes of the application, please consider that the response. Everything beyond that is further development, if you're inclined to read it.</p>
+
+		<p><b>About this page: </b>As a web developer, interactive webpages are my favorite way to communicate ideas. So, I wrote this page. I used <a href="https://www.mathjax.org/">MathJax</a>, <a href="https://jquery.com/">jQuery</a>, and <a href="https://d3js.org/">D3.js</a>.</p>
+
+		<h1 class="anchor">Naive Model</h1>
+
+		<p>To begin this problem, we need to define: what exactly does best mean? As a naive first guess, let's define the "best" value of $T$ to simply refer to the value on $\mathbb{R}$ with the highest probability of being $T$.</p>
+
+		<p>We have three guesses $X$, $Y$, and $Z$. Since we know their corresponding $\sigma$ values $a, b, c$, we can calculate the probability that each value was sampled from a given center $\mu$. For now, we will only consider the case with the guess $X$ and the standard deviation $a$.</p>
+
+		<h2 class="anchor">One-Sample Case</h1>
+
+		<p> Let $A_{\mu}$ be the event that that $T=\mu$. Let $B_X$ be the event that a random sample was at point $X$. Then, we calculate the conditional probability $P(A_{\mu}|B_X)$ for a given $X, \mu$:</p>
+
+		<div class="eqn">$$P(A_{\mu}|B_X)=\frac{P(A_{\mu} \cap B_X)}{P(B_X)}$$</div>
+
+		<p>This conditional fraction represents the probability that the distribution was centered at a particular mean, given that we know the location of one sample. We will calculate this distribution across all possible $\mu$, so that we may select the largest value. Let's go about calculating the right-hand side.</p>
+
+		<p>Let's begin by assuming that $T \in [l, r]$ in $\mathbb{R}$. Let's further assume that $T$ has an equal probability of being anywhere in this interval. Then, we have for some $\mu \in [l, r]$:</p>
+
+		<div class="eqn">$$P(A_{\mu})=\frac{1}{r-l}$$</div>
+
+		<p>Within a particular normal distribution with $\sigma=a$ centered at $\mu$, we also know how to calculate the probability that $X$ is at a particular value.</p>
+
+		<div class="eqn">$$P(B_X|A_{\mu}) = \frac{1}{a \sqrt{2\pi}}e^{-\frac{1}{2}(\frac{X-\mu}{a})^2}$$</div>
+
+		<p>From this, we can calculate the probability that both of these events happen with a simple product.</p>
+
+		<div class="eqn">$$P(A_{\mu} \cap B_X)=P(B_X|A_{\mu})P(A_{\mu})=\frac{1}{r-l}\frac{1}{a \sqrt{2\pi}}e^{-\frac{1}{2}(\frac{X-\mu}{a})^2}$$</div>
+
+		<p>Great! Now we need to calculate $P(B_X)$, or the probability that a random sample $\bar{x}$ is chosen to be at $X$.<p>
+
+		<h2 class="anchor">Sample Probability</h2>
+
+		<p>Suppose we have two possible means, $\mu_1$ and $\mu_2$, that we choose randomly. The probability that the sample was chosen at $X$ would be:</p>
+
+		<div class="eqn">$$P(B_X)=P((A_{\mu_1} \cap B_X) \cup (A_{\mu_2} \cap B_X))=P(A_{\mu_1} \cap B_X)+P(A_{\mu_2} \cap B_X)$$</div>
+
+		<p>We can extend a very similar argument for some $\mu_1, \mu_2, ..., \mu_n$.</p>
+
+		<div class="eqn">$$P(B_X)=\sum_{i=1}^n P(A_{\mu_i} \cap B_X)$$</div>
+
+		<p>Finally, we can move this to a continuous distribution by writing this sum as an integral.</p>
+
+		<div class="eqn">$$P(B_X)=\int_{\mu=l}^{\mu=r}P(A_{\mu} \cap B_X) d\mu$$</div>
+
+		<p>Plugging in our formula for $P(A_{\mu} \cap B_X)$:</p>
+
+		<div class="eqn">$$P(B_X)=\int_{\mu=l}^{\mu=r}\frac{1}{r-l}\frac{1}{a \sqrt{2\pi}}e^{-\frac{1}{2}(\frac{X-\mu}{a})^2} d\mu$$</div>
+
+		<p>Note that the only difference between this distribution and a typical normal distribution is that $X$ and $\mu$ are switched, since we are varying $\mu$ for a fixed $X$. However, due to the way normal distributions are defined using a square term, we have $(X-\mu)^2=(\mu-X)^2$ and our distribution ends up indeed being a normal distribution.</p>
+
+		<p>If we assume a symmetric distribution, we can evaluate this using $\text{erf}(x)$. Let $l=\mu_0-w$, $r=\mu_0+w$. Then we have:</p>
+
+		<div class="eqn">$$P(B_X)=\frac{1}{2wa\sqrt{2\pi}}\frac{\sqrt{\pi}}{1}a\sqrt{2}\text{erf}(\frac{w}{\sqrt{2}a})$$</div>
+
+		<div class="eqn">$$P(B_X)=\frac{1}{2w} \text{erf}(\frac{w}{\sqrt{2}a})$$</div>
+
+		<p>Notice that as $w$ becomes large, $P(B_X)$ goes to $0$. This makes a lot of sense: if we allow potential probability distributions to the entire real line, the chance that our value lies in a particular vicinity is nearly impossible.</p>
+
+		<h2 class="anchor">Putting it Together</h1>
+
+		<p>Let's substitute this into our conditional probability formula. But before that, let's simplify $P(A_{\mu} \cap B_X)$ by making the same simplifiying assumptions that $l=\mu_0-w$, $r=\mu_0+w$. So, we have:</p>
+
+		<div class="eqn">$$P(A_{\mu} \cap B_X)=\frac{1}{2w}\frac{1}{a \sqrt{2\pi}}e^{-\frac{1}{2}(\frac{X-\mu}{a})^2}$$</div>
+
+
+		<p>Finally, let's put everything together!</p>
+
+		<div class="eqn">$$P(A_{\mu}|B_X)=\frac{P(A_{\mu} \cap B_X)}{P(B_X)}=\frac{1}{2wa\sqrt{2\pi}}2w\frac{e^{-\frac{1}{2}(\frac{X-\mu}{a})^2}}{\text{erf}(\frac{w}{\sqrt{2}a})}$$</div>
+
+		<div class="eqn">$$P(A_{\mu}|B_X)=\frac{1}{a\sqrt{2\pi}}\frac{e^{-\frac{1}{2}(\frac{X-\mu}{a})^2}}{\text{erf}(\frac{w}{\sqrt{2}a})}$$</div>
+
+		<p>Does this look familiar? It should, because it is identical to the normal distribution we saw before, save for a factor of $\text{erf}(\frac{w}{\sqrt{2}a})$ As we noted, this is due to the reflexivity of $(X-\mu)^2=(\mu-X)^2$. In other words, the probability of the distribution of the mean relative to the sample is identical to the distribution of the sample relative to the mean.</p>
+
+		<p>This may make all this calculation seem like a useless result. However, notice that as $w$ approaches infinity, $\text{erf}$ approaches 1, and the distributions start to look identical. This makes sense, since if we consider the whole real line, we should expect to see identical results. But as we decrease $w$, the probability space gets denser. In other words, we can now scale our distribution using our prior knowledge. </p>
+
+		<p>From now on, we will write our formula by replacing the constant $1/\text{erf}(\frac{w}{\sqrt{2}a})$ with the symbol $\gamma$. Thus, we have the following formula for the probability that $T$ is equal to some particular $\mu$:</p>
+
+		<div class="eqn">$$P(A_{\mu}|B_X)=\frac{\gamma}{a\sqrt{2\pi}}e^{-\frac{1}{2}(\frac{X-\mu}{a})^2}$$</div>
+
+		<h2 class="anchor">Multiple Samples</h2>
+
+		<p>Now that we have this scalable distribution, let us consider the multiple-sample situation. We would like to maximize $P(A_\mu | B_X \cap A_\mu | B_Y \cap A_\mu | B_Z)$ (written from now on as $P_{XYZ}$), that is, we'd like to maximize the probability that all three guesses are correct. </p>
+
+		<p>Fortunately, we can do this quite simply with a product. We have the following, for samples $X, Y, Z$, standard deviations $a, b, c$, and constants of prior knowledge $\gamma_1, \gamma_2, \gamma_3$.</p>
+
+		<div class="eqn">$$P(A_\mu | B_X \cap A_\mu | B_Y \cap A_\mu | B_Z)=P(A_\mu | B_X) P(A_\mu | B_Y) P(A_\mu | B_Z)$$</div>
+		<div class="eqn">$$=
+		\frac{\gamma_1}{a\sqrt{2\pi}}e^{-\frac{1}{2}(\frac{X-\mu}{a})^2}
+		\frac{\gamma_2}{b\sqrt{2\pi}}e^{-\frac{1}{2}(\frac{Y-\mu}{b})^2}
+		\frac{\gamma_3}{c\sqrt{2\pi}}e^{-\frac{1}{2}(\frac{Z-\mu}{c})^2}$$</div>
+
+		<p>Notice that if we simply collect the factors $\gamma_1 \gamma_2 \gamma_3$, the remaining product reduces to a product of normal distributions. </p>
+
+		<div class="eqn">$$P_{XYZ}=\gamma_1 \gamma_2 \gamma_3 \mathcal{N}(X, a) \mathcal{N}(Y, b) \mathcal{N}(Z, c)$$</div>
+
+		<p>It is <a href="http://www.tina-vision.net/docs/memos/2003-003.pdf">well-known</a> that the product of normal distributions is itself proportional to a normal distribution. Specifically, for the following two normal distributions... 
+
+		<div class="eqn">$$f(x)=\frac{1}{\sqrt{2\pi}\sigma_f} e^{-\frac{1}{2}(\frac{x-\mu_f}{\sigma_f})^2}, \quad g(x)=\frac{1}{\sqrt{2\pi}\sigma_g} e^{-\frac{1}{2}(\frac{x-\mu_g}{\sigma_g})^2}$$</div>
+
+		<p>...we have that $f(x)g(x)$ is also a normal distribution:</p>
+
+		<div class="eqn">$$f(x)g(x)=\frac{1}{\sqrt{2\pi}\sigma_{fg}} e^{-\frac{1}{2}(\frac{x-\mu_{fg}}{\sigma_{fg}})^2}$$</div>
+
+		<p>Multiplying exponents and completing the square yields the following expressions for $\mu_{fg}$ and $\sigma_{fg}$, up to a scaling factor $S_{fg}$ (ignored for now).</p>
+
+		<div class="eqn">$$\sigma_{fg} = \sqrt{\frac{\sigma_f^2 \sigma_g^2}{\sigma_f^2 + \sigma_g^2}}, \quad \mu_{fg} = \frac{\mu_f \sigma_g^2+\mu_g \sigma_f^2}{\sigma_f^2 + \sigma_g^2}$$</div>
+
+		<p>Iterating this process one more time for $\sigma_{fg}, \mu_{fg}$, and $\sigma_h, \mu_h$ yields the following expressions:</p>
+
+		<div class="eqn">$$\sigma_{fgh} = \sqrt{\frac{\sigma_f^2 \sigma_g^2 \sigma_h^2}{\sigma_g^2 \sigma_h^2 + \sigma_f^2 (\sigma_g^2 + \sigma_h^2)}},
+		\quad
+		\mu_{fgh} = \frac{\mu_h \sigma_f^2 \sigma_g^2 + \sigma_h^2 (\mu_g \sigma_f^2 + \mu_f \sigma_g^2)}{\sigma_g^2 \sigma_h^2 + \sigma_f^2(\sigma_g^2 + \sigma_h^2)}
+		$$</div>
+
+		<p>Finally, we can plug in our values of $X, Y, Z$ into $\mu_1, \mu_2, \mu_3$ and $a, b, c$ into $\sigma_1, \sigma_2, \sigma_3$.</p>
+
+		<div class="eqn">$$\sigma_P = \sqrt{\frac{a^2 b^2 c^2}{b^2 c^2 + a^2 (b^2 + c^2)}},
+		\quad
+		\mu_P = \frac{Z a^2 b^2 + c^2 (Y a^2 + X b^2)}{b^2 c^2 + a^2(b^2 + c^2)}
+		$$</div>
+
+		<p>This gives us the following final formula:</p>
+
+		<div class="eqn">$$P_{XYZ}=S_{P}^{-1}\gamma_1 \gamma_2 \gamma_3 \mathcal{N}(\mu_P, \sigma_P)$$</div>
+
+		<p>Note again that we are technically off by a scaling factor of $S_P$. However, this is irrelevant to answer the original question: at which point will this probability be the highest? The answer, of course, is at $\mu_P$, the center of the normal distribution.</p>
+
+		<h2 class="anchor">Analysis</h2>
+
+		<p>This is a decent naive guess to this problem. Mathematically, it is very elegant. It acts essentially as a weighted average, where the means with smaller standard deviations will create a larger weight on the final mean.</p>
+
+		<p>To be more specific, let's examine just the two-distribution case:</p>
+
+		<div class="eqn">$$\mu_{fg} = \frac{\mu_f \sigma_g^2+\mu_g \sigma_f^2}{\sigma_f^2 + \sigma_g^2}$$</div>
+
+		<p>Notice that the weight of $\mu_f$ is exactly the ratio of $\frac{\sigma_g^2}{\sigma_f^2 + \sigma_g^2}$, and $\mu_g$ is exactly the ratio of $\frac{\sigma_f^2}{\sigma_f^2 + \sigma_g^2}$. In other words, $\mu_{fg}$ is influenced more strongly by $\mu_f$ the larger $\sigma^2_g$ is, and vice versa. Another way to say this is that $\mu_f$ has a stronger influence the smaller $\sigma^2_f$ is relative to $\sigma^2_g$. This makes sense, if we think about $\sigma$ as a representation of precision. The higher the precision of a single distribution, the closer the product distribution will be to that that distribution.</p>
+
+		<p>The following visualization shows this fact with two distributions. The red distribution has $\mu_1, \sigma_1$, the blue distribution has $\mu_2, \sigma_2$, and the purple distribution is a product distribution scaled by $S_{12}$.</p>
+
+		<div class="wrapper" ><div id="svg1"></div></div>
+
+		<div class="wrapper">
+			<div class="inputs">
+	  	$\mu_1$: <input type="range" min="-2" max="2" value="0.0" step="0.2" class="slider" id="mu1">&nbsp; <span id="vm1">0.0</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	  	$\sigma_1$: <input type="range" min="0.1" max="2" value="0.5" step="0.1" class="slider" id="sigma1">&nbsp; <span id="vs1">0.5</span>
+	  	<br>
+	  	$\mu_2$: <input type="range" min="-2" max="2" value="1.0" step="0.2" class="slider" id="mu2">&nbsp; <span id="vm2">1.0</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	  	$\sigma_2$: <input type="range" min="0.1" max="2" value="0.2" step="0.1" class="slider" id="sigma2">&nbsp; <span id="vs2">0.2</span>
+	  	<br>
+	  	$\mu_{12}$: <span id="vm12">0.862</span>&nbsp; &nbsp; &nbsp; &nbsp;$\sigma_{12}$: <span id="vs12">0.186</span>
+	  		</div>
+		</div>
+
+		<p>Something worth noticing about this model is that $\sigma_P$ is not actually dependent on the values of $X, Y, Z$. In other words, for the same $a, b, c$; $X, Y, Z$ can be arbitrarily far apart and the resulting $\sigma_P$ will be exactly the same.</p>
+
+		<h2 class="anchor">Conclusion</h2>
+
+		<p>We write our final formula derived using this naive method, using 95% confidence intervals, (standard in statistics) as follows:</p>
+
+		<div class="eqn">
+			$$T = \mu_P \pm 2*\sigma_P \quad \text{where}$$
+		</div>
+		<div class="eqn">
+			$$\sigma_P = \sqrt{\frac{a^2 b^2 c^2}{b^2 c^2 + a^2 (b^2 + c^2)}},
+			\quad
+			\mu_P = \frac{Z a^2 b^2 + c^2 (Y a^2 + X b^2)}{b^2 c^2 + a^2(b^2 + c^2)}$$
+		</div>
+
+		<p>This method has a few problems. One is that it does not take any prior knowledge into account. We have already seen that under this naive method, $\gamma$ factors can be generated in order to adjust the distribution using prior knowledge, though we did not use them. But we may have other prior knowledge about the situation that we may want to use. For instance, temperatures physically cannot go below -273.15 degrees C, or 0 degrees K, and reasonable daily temperatures are even further constrained.</p>
+
+		<p>Another issue is that the probability model here was somewhat spurious to begin with. The calculations were all made assuming that conditional probabilities could be directly calculated from normal distributions. However, the probability of landing on a specific $x$ is infinitely small 0. Normal distributions represent probability densities, not actual probabilities. It just so happens to be that this kind of reasoning works out in a mathematically very elegant way. In order to calculate this more rigorously, one should define a pre-set interval $\epsilon$, then define $P(B_X)$ as the probability that the sample lies in $[X-\epsilon, X+\epsilon]$.</p>
+
+		<p><b>SPARC readers: </b> Here ends the 5-page portion of my response. I will investigate some of these alternative methods further in the following sections.</p>
+
+		<h1 class="anchor">Adding Confidence</h1>
+
+		<p>The first adjustment we will make to our model is adding confidence intervals. It might be that $\mu_P$ has the highest probability, but the probability of the sample being exactly $\mu_P$ is exactly 0, as it is infinitsemially precise. Moreover, if $\sigma_P$ is very large, then even the probability of being in a neighborhood of $\mu_P$ will be low. Thus, we need confidence intervals of some sort.</p>
+
+		<h2 class="anchor">Naive Confidence</h2>
+
+		<p>We will first define confidence using a relatively standard method from statistics: we define the best interval as the smallest one where the probability of the sample being within that interval is at least 95%.</p>
+
+		<p>The easiest way to obtain this confidence interval is simply add $\pm 2 \sigma_{P}$ to our estimate. Thanks to the way normal distributions are defined, we know that this is pretty much a 95% interval. Our solution is thus written as follows:</p>
+
+		<div class="eqn">$$T = \mu_P \pm 2 \sigma_P$$</div>
+
+		<h2 class="anchor">Prior Knowledge</h2>
+
+		<p>Up until now, we've been discarding the $\gamma$ constants that we derived formulas for. However, we can use prior knowledge to narrow our probability distribution. Let's start by making two assumptions. First, the true value of $T$ cannot be below absolute zero. Second, the true value of $T$ has an equally high chance of being to the left or to the right of our estimate. Thus, we define $w_1 = |X-K_0|, w_2 = |Y-K_0|, w_3 = |Z-K_0|$. In total, we have: </p>
+
+		<div class="eqn">$$\gamma_P = 
+		\text{erf}(\frac{w_1}{\sqrt{2}a})^{-1}
+		\text{erf}(\frac{w_2}{\sqrt{2}b})^{-1}
+		\text{erf}(\frac{w_3}{\sqrt{2}c})^{-1}$$</div>
+
+		<div class="eqn">$$\gamma_P = 
+		\text{erf}(\frac{|X-K_0|}{\sqrt{2}a})^{-1}
+		\text{erf}(\frac{|Y-K_0|}{\sqrt{2}b})^{-1}
+		\text{erf}(\frac{|Z-K_0|}{\sqrt{2}c})^{-1}$$</div>
+
+		<p>This factor will scale our product distribution, and allow us to obtain smaller intervals confidence intervals.</p>
+
+		<p>The issue here is that the calculated value of $\gamma$ will nearly always be very close to $1$, if we set $K_0=273.15$ at absolute zero. In general, the farther $K_0$ is from a sample, the closer the corresponding $\gamma$ will be to $1$. As an example, consider $X=-100$, $a=25$. Although this is already a nearly impossibly low temperature, the calculated value of $\gamma$ has $1-\gamma<10^{-11}$.</p>
+
+		<p>Let's see what happens if we adjust our $w$ values. Let's define a "reasonable" temperature range, perhaps based on our prior knowledge of temperature in Hayward. For some $[K_0, K_1]$, we'll define $w_1 = \min(|X-K_0|, |X-K_1|)$, and similarly for $Y$ and $Z$. Let's call this interval $[0, 100]$, for the purposes of demonstration. Suppose we have $X = 25$, $Y=50$, $Z = 75$, and $a, b, c = 25$. Then, we have $w_1=25, w_2 = 50, w_3 = 25$. The resulting values for $\gamma$ are:</p>
+
+		<div class="eqn">$$
+		\gamma_1 = \text{erf}(\frac{25}{25\sqrt{2}})^{-1},
+		\gamma_2 = \text{erf}(\frac{50}{25\sqrt{2}})^{-1},
+		\gamma_3 = \text{erf}(\frac{25}{25\sqrt{2}})^{-1}
+		$$</div>
+
+		<div class="eqn">$$
+		\gamma_1 = 1.464794,
+		\gamma_2 = 1.047669,
+		\gamma_3 = 1.464794
+		$$</div>
+
+		<div class="eqn">$$
+		\gamma_P = \gamma_1 \gamma_2 \gamma_3 = 2.247904
+		$$</div>
+
+		Note that for the error function, we have that the probability of a sample falling inside $\mu \pm x \sigma$ is equal to $\text{erf}(x/\sqrt{2})$. Thus, we can solve:
+
+		<div class="eqn">
+			$$\text{erf}(\frac{x}{\sqrt{2}})\gamma_P = 0.95 \rightarrow x \approx 0.5572$$
+		</div>
+
+		<p>Note that $\mu_P=50$ since all the variances are the same. Additionally, we have $\sigma_P=25/\sqrt{3} \approx 14.43$ . From this, we can calculate the error bound to be $0.5572*14.43=8.04$. Before, our guess would have yielded $T=50 \pm 2*14.43$ or $50 \pm 28.86$, whereas now, we have $T=50 \pm 8.04$, which is a significant shrinkage.</p>
+
+		<h2 class="anchor">Asymmetric Bounds</h2>
+
+		<p>There's still one big issue with this method, which is that it assumes symmetric boundaries. However, this doesn't make too much sense. If our sample value is very close to our estimated boundary, the calculated $w$ will be very small, which doesn't make a lot of sense. Ideally, we can have one boundary be much farther than another. To take this into account, we must return to our old formula.</p>
+
+		<div class="eqn">$$P(B_X)=\int_{\mu=l}^{\mu=r}\frac{1}{r-l}\frac{1}{a \sqrt{2\pi}}e^{-\frac{1}{2}(\frac{X-\mu}{a})^2} d\mu$$</div>
+
+		<p>Let's try evaluating this without assuming symmetry. First, we use the fact that $(X-\mu)^2=(\mu-X)^2$.</p>
+
+		<div class="eqn">$$P(B_X)=\int_{\mu=l}^{\mu=r}\frac{1}{r-l}\frac{1}{a \sqrt{2\pi}}e^{-\frac{1}{2}(\frac{\mu-X}{a})^2} d\mu$$</div>
+
+		<p>Now, we substitute $u = \mu - X$.</p>
+
+		<div class="eqn">$$P(B_X)=\int_{\mu=l-X}^{\mu=r-X}\frac{1}{r-l}\frac{1}{a \sqrt{2\pi}}e^{-\frac{1}{2}(\frac{u}{a})^2} du$$</div>
+
+		<p>Finally, we can directly evaluate this integral using $\text{erf}$.</p>
+
+		<div class="eqn">
+			$$P(B_X)=\frac{1}{2(r-l)}[\text{erf}(\frac{r-X}{\sqrt{2}a})-\text{erf}(\frac{l-X}{\sqrt{2}a})]$$
+		</div>
+
+		<p>As a reminder, we have the following formula for conditional probability without the symmetric simplification we made earlier:</p>
+
+		<div class="eqn">$$P(A_{\mu} \cap B_X)=\frac{1}{r-l}\frac{1}{a \sqrt{2\pi}}e^{-\frac{1}{2}(\frac{X-\mu}{a})^2}$$</div>
+
+		<p>Finally, we want to write the quotient $P(A_{\mu} \cap B_X)/P(B_X)$. This will get a little messy, so let's define a constant $\beta$.</p>
+
+		<div class="eqn">
+			$$\beta^{-1} = \frac{1}{2}[\text{erf}(\frac{r-X}{\sqrt{2}a})-\text{erf}(\frac{l-X}{\sqrt{2}a})]$$
+		</div>
+
+		<p>It's important that we include the factor of $1/2$, since the difference inside the brackets will approach 2 as $r$ and $l$ grow arbitrarily far apart, allowing $\beta$ to approach 1. Now, we can write:</p>
+
+		<div class="eqn">
+			$$
+			P(B_X) = \frac{\beta^{-1}}{r-l}
+			$$
+		</div>
+
+		<div class="eqn">
+			$$
+			P(A_{\mu} | B_X) = \frac{\beta}{a \sqrt{2\pi}}e^{-\frac{1}{2}(\frac{X-\mu}{a})^2}
+			=\beta\mathcal{N}(X, a)
+			$$
+		</div>
+
+		<p>We can write the total product distribution as follows:</p>
+
+		<div class="eqn">
+			$$P_{XYZ}=\beta_1 \beta_2 \beta_3 \mathcal{N}(X, a) \mathcal{N}(Y, b) \mathcal{N}(Z, c)$$
+		</div>
+
+		<p>Note that we once again have a product of Gaussian distributions. This means that our $\sigma$ and $\mu$ are exactly the same as they were before. The only difference is we now have a new constant $\beta_P = \beta_1 \beta_2 \beta_3$.</p>
+
+		<p>Let's see what the calculated bounds would be for the same setup as last time, with $[K_0, K_1] = [0, 100]$, $X=25$, $Y=50$, $Z=75$, and $a, b, c = 25$.</p>
+
+		<div class="eqn">
+			$$\beta_1^{-1} = \frac{1}{2}[\text{erf}(\frac{100-25}{25\sqrt{2}})-\text{erf}(\frac{0-25}{25\sqrt{2}})] \rightarrow \beta_1 \approx 1.19048  $$
+		</div>
+
+		<div class="eqn">
+			$$\beta_1^{-1} = \frac{1}{2}[\text{erf}(\frac{100-50}{25\sqrt{2}})-\text{erf}(\frac{0-50}{25\sqrt{2}})] \rightarrow \beta_1 \approx 1.04767  $$
+		</div>
+
+		<div class="eqn">
+			$$\beta_1^{-1} = \frac{1}{2}[\text{erf}(\frac{100-75}{25\sqrt{2}})-\text{erf}(\frac{0-75}{25\sqrt{2}})] \rightarrow \beta_1 \approx 1.19048  $$
+		</div>
+
+		<div class="eqn">
+			$$\beta_P = \beta_1 \beta_2 \beta_3 \approx 1.48481$$
+		</div>
+
+		<p>We can then solve for the corresponding error bound:</p>
+
+		<div class="eqn">
+			$$\text{erf}(\frac{x}{\sqrt{2}})\beta = 0.95 \rightarrow x \approx 0.9150$$
+		</div>
+
+		<p>The corresponding bound is $0.9150*(25/\sqrt{3}) \approx 13.21$. Unsurprisingly, the resulting error bound is smaller than it would be without any prior knowledge, but larger than it is with the symmetric constraint.</p>
+
+	</div>
+
+	<script>
+		var btnClicked = false;
+		$("#printButton").click(function() {
+			if(!btnClicked) $(".container").addClass("print");
+			else $(".container").removeClass("print");
+
+			btnClicked = !btnClicked;
+		});
+	</script>
+	<script src="./js/anchors.js"></script>
+	<script src="./js/svg1.js"></script>
+	<script src="./js/svg2.js"></script>
+
+	<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</body>
+</html>
